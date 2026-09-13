@@ -1,0 +1,39 @@
+name: Build usbliter8
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract zip
+        run: unzip usb8.zip
+
+      - name: Install ARM toolchain & CMake
+        run: sudo apt-get install -y cmake gcc-arm-none-eabi build-essential
+
+      - name: Clone Pico SDK
+        run: |
+          git clone https://github.com/raspberrypi/pico-sdk.git
+          cd pico-sdk
+          git checkout a1438dff1d38bd9c65dbd693f0e5db4b9ae91779
+          git submodule update --init
+      - name: Build Tenstar
+        run: |
+          cd usb8
+          printf 'add_compile_definitions(\n    BOARD_NAME="Tenstar RP2350 USB-A"\n    PIO_USB_DP_PIN_DEFAULT=9\n    LED_NEOPIXEL=1\n    LED_RED_GREEN_SWAPPED=1\n    PICO_DEFAULT_WS2812_PIN=22\n)\n' \
+            > boards/tenstar_rp2350_usb_a.cmake
+          cmake -S . -B build \
+            -DPICO_BOARD=tenstar_rp2350_usb_a \
+            -DPICO_PLATFORM=rp2350 \
+            -DPICO_SDK_PATH=${{ github.workspace }}/pico-sdk \
+            -DPICO_TOOLCHAIN_PATH=/usr \
+            -DPICO_BOARD_CMAKE_DIRS=${{ github.workspace }}/usb8/boards
+          cmake --build build -j$(nproc)
+      - name: Upload UF2
+        uses: actions/upload-artifact@v4
+        with:
+          name: usbliter8-tenstar
+          path: usb8/build/usbliter8.uf2
