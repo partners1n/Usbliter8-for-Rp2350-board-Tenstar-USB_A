@@ -1,7 +1,5 @@
 cmake_minimum_required(VERSION 3.13)
 
-# ====================================================================================
-
 include(pico_sdk_import.cmake)
 
 project(usbliter8 C CXX ASM)
@@ -30,6 +28,8 @@ add_executable(usbliter8
     bus.c
     usb.c
     exploit.c
+    oled.c     # <--- เพิ่มเข้ามาใหม่
+    button.c   # <--- เพิ่มเข้ามาใหม่
 )
 
 pico_set_program_name(usbliter8 "usbliter8")
@@ -51,6 +51,7 @@ target_link_libraries(usbliter8
     pico_stdlib
     pico_status_led
     hardware_pwm
+    hardware_i2c  # <--- เพิ่มไลบรารี I2C สำหรับจอ OLED
     pio_usb
 )
 
